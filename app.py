@@ -7,6 +7,8 @@ import sqlite3
 # flaskをimportしてflaskを使えるようにする
 from flask import Flask , render_template , request , redirect , session
 
+import datetime
+
 # appにFlaskを定義して使えるようにしています。Flask クラスのインスタンスを作って、 app という変数に代入しています。
 app = Flask(__name__)
 
@@ -91,7 +93,7 @@ def bbs():
         c.execute("select name from user where id = ?", (user_id,))
         # fetchoneはタプル型
         user_info = c.fetchone()
-        c.execute("select id,comment from bbs where userid = ? AND del_flag <1 order by id", (user_id,))
+        c.execute("select id,comment from bbs where userid = ? AND del_flag =0 order by id", (user_id,))
         comment_list = []
         for row in c.fetchall():
             comment_list.append({"id": row[0], "comment": row[1]})
@@ -108,10 +110,11 @@ def add():
     # フォームから入力されたアイテム名の取得
     comment = request.form.get("comment")
     del_flag = 0
+    dt_now = datetime.datetime.now()
     conn = sqlite3.connect('service.db')
     c = conn.cursor()
     # DBにデータを追加する
-    c.execute("insert into bbs values(null,?,?,?)", (user_id, comment, del_flag))
+    c.execute("insert into bbs values(null,?,?,?,?)", (user_id, comment, del_flag, dt_now))
     conn.commit()
     conn.close()
     return redirect('/bbs')
