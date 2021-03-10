@@ -247,11 +247,11 @@ $(function () {  // ここはお約束
 
   // 課題2解答 
   // 三角形の面積を求める関数
-  function triangle(x, y) {
-    return x * y / 2;
-  }
-  console.log("三角形の面積は");
-  console.log(triangle(2, 3));
+  // function triangle(x, y) {
+  //   return x * y / 2;
+  // }
+  // console.log("三角形の面積は");
+  // console.log(triangle(2, 3));
 
 
   // 課題3解答 
@@ -318,6 +318,13 @@ $(function () {  // ここはお約束
   $(".drawer").drawer();
 
 
+  $('#del_btn').on('click', function(){
+    $('#del_real').toggle();
+  });
+
+
+ 
+
 
 
 
@@ -340,6 +347,11 @@ $(function () {  // ここはお約束
   // $("#img-change").on('click', function() {
   //  $("#change-target").attr("src", "img/change_img.jpg");
   // });
+
+
+
+
+
 
 
 });
