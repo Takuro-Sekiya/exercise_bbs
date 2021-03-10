@@ -4,7 +4,7 @@
 
 <div>
 
-<p>{{user_info[0]}}さん こんにちは</p><br>
+  <p>{{user_info[0]}}さん こんにちは</p><br>
 
   <form action="/add" method="post">
     投稿者：{{user_info[0]}}<br>
@@ -16,10 +16,11 @@
   {% for item in comment_list %}
   <div class="bbs_content">
     <p>{{item["comment"]}}</p>
-      <a href="/edit/{{item['id']}}">編集</a>
-      <form action="/del" method="post">
-        <input type="hidden" name="comment_id" value="{{item['id']}}">
-        <input type="submit" name="delete" value="削除する">
+    <p>{{item["time"]}}</p>
+    <a href="/edit/{{item['id']}}">編集</a>
+    <form action="/del" method="post">
+      <input type="hidden" name="comment_id" value="{{item['id']}}">
+      <input type="submit" name="delete" value="削除する">
     </form><br><br>
   </div>
   {% endfor %}

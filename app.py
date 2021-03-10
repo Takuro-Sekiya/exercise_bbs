@@ -1,7 +1,9 @@
 # splite3をimportする
 import sqlite3
+
 # flaskをimportしてflaskを使えるようにする
 from flask import Flask, render_template, request, redirect, session
+from datetime import datetime
 # appにFlaskを定義して使えるようにしています。Flask クラスのインスタンスを作って、 app という変数に代入しています。
 app = Flask(__name__)
 
@@ -89,13 +91,14 @@ def bbs():
         # fetchoneはタプル型
         user_info = c.fetchone()
         c.execute(
-            "select id,comment from bbs where flag = 0 and userid = ? order by id", (user_id,))
+            "select id,comment, time from bbs where  userid = ? and flag = 0 order by id", (user_id,))
 
         comment_list = []
         for row in c.fetchall():
-            comment_list.append({"id": row[0], "comment": row[1]})
-
+            comment_list.append(
+                {"id": row[0], "comment": row[1], "time": row[2]})
         c.close()
+
         return render_template('bbs.html', user_info=user_info, comment_list=comment_list)
     else:
         return redirect("/login")
@@ -104,13 +107,13 @@ def bbs():
 @app.route('/add', methods=["POST"])
 def add():
     user_id = session['user_id']
+    time = datetime.now()
     # フォームから入力されたアイテム名の取得
     comment = request.form.get("comment")
-    flag = 0
     conn = sqlite3.connect('service.db')
     c = conn.cursor()
     # DBにデータを追加する
-    c.execute("insert into bbs values(null,?,?,?)", (user_id, comment, flag))
+    c.execute("insert into bbs values(null,?,?,0,?)", (user_id, comment, time))
     conn.commit()
     conn.close()
     return redirect('/bbs')
