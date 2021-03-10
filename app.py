@@ -1,12 +1,13 @@
 # splite3をimportする
 import sqlite3
 # flaskをimportしてflaskを使えるようにする
-from flask import Flask , render_template , request , redirect , session
+from flask import Flask, render_template, request, redirect, session
 # appにFlaskを定義して使えるようにしています。Flask クラスのインスタンスを作って、 app という変数に代入しています。
 app = Flask(__name__)
 
 # Flask では標準で Flask.secret_key を設定すると、sessionを使うことができます。この時、Flask では session の内容を署名付きで Cookie に保存します。
 app.secret_key = 'sunabakoza'
+
 
 @app.route('/')
 def index():
@@ -15,12 +16,12 @@ def index():
 
 # GET  /register => 登録画面を表示
 # POST /register => 登録処理をする
-@app.route('/register',methods=["GET", "POST"])
+@app.route('/register', methods=["GET", "POST"])
 def register():
     #  登録ページを表示させる
     if request.method == "GET":
-        if 'user_id' in session :
-            return redirect ('/bbs')
+        if 'user_id' in session:
+            return redirect('/bbs')
         else:
             return render_template("register.html")
     # ここからPOSTの処理
@@ -30,7 +31,7 @@ def register():
 
         conn = sqlite3.connect('service.db')
         c = conn.cursor()
-        c.execute("insert into user values(null,?,?)", (name,password))
+        c.execute("insert into user values(null,?,?)", (name, password))
         conn.commit()
         conn.close()
         return redirect('/login')
@@ -41,7 +42,7 @@ def register():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
-        if 'user_id' in session :
+        if 'user_id' in session:
             return redirect("/bbs")
         else:
             return render_template("login.html")
@@ -54,7 +55,8 @@ def login():
         # 存在するかを判定する。レコードが存在するとuser_idに整数が代入、存在しなければ nullが入る
         conn = sqlite3.connect('service.db')
         c = conn.cursor()
-        c.execute("select id from user where name = ? and password = ?", (name, password) )
+        c.execute(
+            "select id from user where name = ? and password = ?", (name, password))
         user_id = c.fetchone()
         conn.close()
 
@@ -69,14 +71,14 @@ def login():
 
 @app.route("/logout")
 def logout():
-    session.pop('user_id',None)
+    session.pop('user_id', None)
     # ログアウト後はログインページにリダイレクトさせる
     return redirect("/login")
 
 
 @app.route('/bbs')
 def bbs():
-    if 'user_id' in session :
+    if 'user_id' in session:
         # クッキーからuser_idを取得
         user_id = session['user_id']
         conn = sqlite3.connect('service.db')
@@ -86,13 +88,15 @@ def bbs():
         c.execute("select name from user where id = ?", (user_id,))
         # fetchoneはタプル型
         user_info = c.fetchone()
-        c.execute("select id,comment from bbs where userid = ? order by id", (user_id,))
+        c.execute(
+            "select id,comment from bbs where flag = 0 and userid = ? order by id", (user_id,))
+
         comment_list = []
         for row in c.fetchall():
             comment_list.append({"id": row[0], "comment": row[1]})
 
         c.close()
-        return render_template('bbs.html' , user_info = user_info , comment_list = comment_list)
+        return render_template('bbs.html', user_info=user_info, comment_list=comment_list)
     else:
         return redirect("/login")
 
@@ -102,10 +106,11 @@ def add():
     user_id = session['user_id']
     # フォームから入力されたアイテム名の取得
     comment = request.form.get("comment")
+    flag = 0
     conn = sqlite3.connect('service.db')
     c = conn.cursor()
     # DBにデータを追加する
-    c.execute("insert into bbs values(null,?,?)", (user_id, comment))
+    c.execute("insert into bbs values(null,?,?,?)", (user_id, comment, flag))
     conn.commit()
     conn.close()
     return redirect('/bbs')
@@ -113,10 +118,10 @@ def add():
 
 @app.route('/edit/<int:id>')
 def edit(id):
-    if 'user_id' in session :
+    if 'user_id' in session:
         conn = sqlite3.connect('service.db')
         c = conn.cursor()
-        c.execute("select comment from bbs where id = ?", (id,) )
+        c.execute("select comment from bbs where id = ?", (id,))
         comment = c.fetchone()
         conn.close()
 
@@ -126,9 +131,9 @@ def edit(id):
             # "りんご" ○   ("りんご",) ☓
             # fetchone()で取り出したtupleに 0 を指定することで テキストだけをとりだす
         else:
-            return "アイテムがありません" # 指定したIDの name がなければときの対処
+            return "アイテムがありません"  # 指定したIDの name がなければときの対処
 
-        item = { "id":id, "comment":comment }
+        item = {"id": id, "comment": comment}
 
         return render_template("edit.html", comment=item)
     else:
@@ -138,16 +143,17 @@ def edit(id):
 # /add ではPOSTを使ったので /edit ではあえてGETを使う
 @app.route("/edit")
 def update_item():
-    if 'user_id' in session :
+    if 'user_id' in session:
         # ブラウザから送られてきたデータを取得
-        item_id = request.args.get("item_id") # id
-        item_id = int(item_id)# ブラウザから送られてきたのは文字列なので整数に変換する
-        comment = request.args.get("comment") # 編集されたテキストを取得する
+        item_id = request.args.get("item_id")  # id
+        item_id = int(item_id)  # ブラウザから送られてきたのは文字列なので整数に変換する
+        comment = request.args.get("comment")  # 編集されたテキストを取得する
 
         # 既にあるデータベースのデータを送られてきたデータに更新
         conn = sqlite3.connect('service.db')
         c = conn.cursor()
-        c.execute("update bbs set comment = ? where id = ?",(comment,item_id))
+        c.execute("update bbs set comment = ? where id = ?",
+                  (comment, item_id))
         conn.commit()
         conn.close()
 
@@ -157,14 +163,14 @@ def update_item():
         return redirect("/login")
 
 
-@app.route('/del' ,methods=["POST"])
+@app.route('/del', methods=["POST"])
 def del_task():
     # クッキーから user_id を取得
     id = request.form.get("comment_id")
     id = int(id)
     conn = sqlite3.connect("service.db")
     c = conn.cursor()
-    c.execute("delete from bbs where id = ?", (id,))
+    c.execute("UPDATE bbs SET flag = 1 WHERE id = ?", (id,))
     conn.commit()
     c.close()
     return redirect("/bbs")
